@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0B0B0C;
+  --card: #1E1E22;
+  --card2: #2A2A30;
+  --accent: #D4FF4D;
+  --accent-text: #0B0B0C;
+  --text: #FFFFFF;
+  --text-dim: #9A9AA2;
+  --stroke: #33333A;
+  --success: #4ADE80;
+  --danger: #F87171;
+  --nav-bg: #000000;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--stroke);
+  border-radius: 24px;
+}
+
+.card2 {
+  background: var(--card2);
+  border-radius: 20px;
+}
+
+.btn-pill {
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+}
+.btn-pill:hover { opacity: 0.9; }
+.btn-pill:active { transform: scale(0.98); }
+.btn-pill:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-ghost {
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  color: var(--text);
+  background: transparent;
+}
+.btn-ghost:hover { background: var(--card2); }
+
+.text-dim { color: var(--text-dim); }
+.border-token { border-color: var(--stroke); }
+.bg-accent { background: var(--accent); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.bg-navbg { background: var(--nav-bg); }
+
+input, select, textarea {
+  background: var(--card2);
+  border: 1px solid var(--stroke);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--stroke); font-size: 13px; }
+th { color: var(--text-dim); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--stroke); border-radius: 4px; }

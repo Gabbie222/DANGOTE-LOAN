@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dangote Loan — Merged UI Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0B0B0C;
+    --card:#1E1E22;
+    --card2:#2A2A30;
+    --accent:#D4FF4D;
+    --accent-text:#0B0B0C;
+    --text:#FFFFFF;
+    --text-dim:#9A9AA2;
+    --stroke:#33333A;
+    --success:#4ADE80;
+    --danger:#F87171;
+    --radius:24px;
+  }
+  [data-theme="light"]{
+    --bg:#F2F4F7;
+    --card:#FFFFFF;
+    --card2:#F7F8FA;
+    --accent:#1360F0;
+    --accent-text:#FFFFFF;
+    --text:#0B0F1A;
+    --text-dim:#6B7280;
+    --stroke:#E5E7EB;
+    --success:#16A34A;
+    --danger:#DC2626;
+  }
+  *{box-sizing:border-box; font-family:'Segoe UI', Inter, system-ui, sans-serif;}
+  body{
+    margin:0; background:#111216; min-height:100vh;
+    display:flex; flex-wrap:wrap; gap:32px; justify-content:center; align-items:flex-start;
+    padding:40px 20px;
+  }
+  .phone{
+    width:340px; height:720px; background:var(--bg); color:var(--text);
+    border-radius:44px; border:8px solid #000; overflow:hidden; position:relative;
+    box-shadow:0 30px 60px rgba(0,0,0,.5);
+    display:flex; flex-direction:column;
+    transition:background .3s;
+  }
+  .statusbar{ display:flex; justify-content:space-between; align-items:center; padding:14px 22px 4px; font-size:13px; font-weight:600;}
+  .theme-toggle{
+    border:1px solid var(--stroke); background:var(--card2); color:var(--text);
+    border-radius:20px; padding:4px 10px; font-size:11px; cursor:pointer;
+  }
+  .screen{ flex:1; overflow-y:auto; padding:6px 20px 100px; position:relative; }
+  .screen::-webkit-scrollbar{display:none;}
+  .label{ text-align:center; font-size:12px; color:#8a8a92; margin-bottom:6px; letter-spacing:.06em; text-transform:uppercase;}
+
+  /* HOME */
+  .top-row{ display:flex; justify-content:space-between; align-items:center; margin:8px 0 18px; }
+  .avatar{ width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#888,#333); }
+  .menu-btn{ width:42px; height:42px; border-radius:50%; background:var(--card2); border:1px solid var(--stroke); display:flex; align-items:center; justify-content:center; color:var(--text);}
+  h1.hero{ font-size:30px; line-height:1.15; margin:0 0 6px; font-weight:800;}
+  h1.hero span{ color:var(--text-dim); font-weight:800;}
+  .sub{ color:var(--text-dim); font-size:13px; margin:0 0 18px;}
+  .progress-card{ background:linear-gradient(160deg,var(--card),var(--card2)); border-radius:var(--radius); padding:18px; margin-bottom:22px; border:1px solid var(--stroke);}
+  .legend{ display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px; color:var(--text-dim);}
+  .legend .dot{ width:8px;height:8px;border-radius:50%;display:inline-block; margin-right:6px;}
+  .dot.total{background:var(--accent);} .dot.paid{background:#bbb;} .dot.due{background:#555;}
+  .bar{ display:flex; height:38px; border-radius:14px; overflow:hidden; gap:3px;}
+  .bar div{ display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;}
+  .seg-paid{ background:#e9e9ec; color:#111; flex:0 0 15%;}
+  .seg-due{ background:repeating-linear-gradient(135deg,#3a3a40,#3a3a40 4px,#2c2c31 4px,#2c2c31 8px); color:#ccc; flex:0 0 23%;}
+  .seg-total{ background:var(--accent); color:var(--accent-text); flex:1;}
+  [data-theme="light"] .seg-due{ background:repeating-linear-gradient(135deg,#dfe3ea,#dfe3ea 4px,#eef0f4 4px,#eef0f4 8px); color:#666;}
+
+  .row-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .row-header h3{ font-size:15px; margin:0;}
+  .see-all{ font-size:12px; color:var(--text-dim); text-decoration:none;}
+  .loan-item{ display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--stroke); border-radius:18px; padding:14px; margin-bottom:10px;}
+  .loan-icon{ width:38px;height:38px;border-radius:12px; background:var(--card2); display:flex;align-items:center;justify-content:center; font-size:18px;}
+  .loan-item .meta{ flex:1;}
+  .loan-item .meta b{ font-size:14px;}
+  .loan-item .meta p{ margin:2px 0 0; font-size:11px; color:var(--text-dim);}
+  .pill-btn{ background:var(--card2); border:1px solid var(--stroke); color:var(--text); font-size:11px; padding:8px 14px; border-radius:16px; white-space:nowrap; cursor:pointer;}
+  .pill-btn.primary{ background:var(--accent); color:var(--accent-text); border:none; font-weight:700;}
+
+  /* BOTTOM NAV */
+  .bottom-nav{ position:absolute; bottom:18px; left:20px; right:20px; background:#000; border-radius:34px; display:flex; align-items:center; justify-content:space-between; padding:8px; gap:6px;}
+  [data-theme="light"] .bottom-nav{ background:#0B0F1A;}
+  .nav-item{ display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:26px; color:#aaa; font-size:12px; cursor:pointer;}
+  .nav-item.active{ background:#fff; color:#000;}
+  .nav-icon{ width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#222; font-size:11px;}
+  .nav-item.active .nav-icon{ background:transparent;}
+
+  /* STEPPER / BORROW AMOUNT */
+  .center-flow{ text-align:center; padding-top:30px;}
+  .center-flow .prompt{ font-size:18px; font-weight:700; margin-bottom:40px;}
+  .amount-label{ font-size:12px; color:var(--text-dim); margin-bottom:6px;}
+  .amount-value{ font-size:44px; font-weight:800; color:var(--accent); border-bottom:2px solid var(--stroke); display:inline-block; padding-bottom:10px; margin-bottom:14px;}
+  .amount-caption{ font-size:12px; color:var(--text-dim); margin-bottom:40px;}
+  .stepper{ display:flex; align-items:center; justify-content:center; gap:24px; margin:20px 0 40px;}
+  .step-btn{ width:44px;height:44px;border-radius:50%; background:var(--card2); border:1px solid var(--stroke); font-size:20px; color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .cta{ width:100%; background:var(--accent); color:var(--accent-text); border:none; border-radius:18px; padding:16px; font-size:15px; font-weight:700; cursor:pointer;}
+  .cta.dark{ background:var(--text); color:var(--bg);}
+
+  /* TERM PICKER */
+  .term-card{ display:flex; justify-content:space-between; align-items:center; border:1px solid var(--stroke); background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px; cursor:pointer;}
+  .term-card.selected{ border-color:var(--accent); background:var(--card2);}
+  .term-card .t-icon{ width:34px;height:34px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;margin-right:10px;}
+  .term-card .t-main{ flex:1; display:flex; align-items:center;}
+  .term-card b{ font-size:14px; display:block;}
+  .term-card small{ color:var(--text-dim); font-size:11px;}
+  .check{ width:22px;height:22px;border-radius:50%;border:1.5px solid var(--stroke); display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent;}
+  .term-card.selected .check{ background:var(--accent); border-color:var(--accent); color:var(--accent-text);}
+
+  /* CREDIT SCORE */
+  .gauge-wrap{ display:flex; flex-direction:column; align-items:center; margin:10px 0 26px;}
+  .gauge{ width:200px; height:110px; position:relative;}
+  .gauge svg{ width:100%; height:100%;}
+  .gauge .score{ position:absolute; top:36px; left:0; right:0; text-align:center; font-size:40px; font-weight:800;}
+  .gauge .rating{ position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:12px; color:var(--success); font-weight:700;}
+  .quick-actions{ display:flex; justify-content:space-around; margin-bottom:24px;}
+  .qa{ display:flex; flex-direction:column; align-items:center; gap:6px; font-size:11px; color:var(--text-dim);}
+  .qa .circle{ width:44px;height:44px;border-radius:50%; background:var(--card2); border:1px solid var(--stroke); display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--text);}
+  .summary-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .summary-cell{ background:var(--card); border:1px solid var(--stroke); border-radius:16px; padding:12px;}
+  .summary-cell b{ font-size:16px; display:block; margin-top:2px;}
+  .summary-cell span{ font-size:11px; color:var(--text-dim);}
+
+  /* LOAN DETAIL */
+  .detail-header{ display:flex; align-items:center; gap:14px; margin:8px 0 4px;}
+  .back-btn{ width:32px;height:32px; border-radius:50%; background:var(--card2); border:1px solid var(--stroke); display:flex; align-items:center; justify-content:center; color:var(--text);}
+  .detail-title{ font-size:17px; font-weight:700;}
+  .detail-sub{ font-size:11px; color:var(--text-dim); margin:0 0 20px 46px;}
+  .freq-tabs{ display:flex; gap:8px; margin-bottom:20px;}
+  .freq-tab{ flex:1; text-align:center; padding:10px; border-radius:14px; border:1px solid var(--stroke); background:var(--card2); font-size:12px; font-weight:600; color:var(--text); cursor:pointer;}
+  .freq-tab.active{ background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
+  .bill-card{ background:var(--card); border:1px solid var(--stroke); border-radius:16px; padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:10px;}
+  .bill-main{ flex:1;}
+  .bill-main b{ font-size:16px; display:block;}
+  .bill-main span{ font-size:10px; color:var(--text-dim);}
+  .bill-stats{ display:flex; gap:14px; margin-top:6px; font-size:11px; color:var(--text-dim);}
+  .spark{ width:44px; height:24px;}
+
+  section.view{ display:none; }
+  section.view.active{ display:block; }
+</style>
+</head>
+<body>
+
+<div class="phone" data-theme="dark" id="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle theme</button>
+  </div>
+
+  <div class="screen">
+
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <div class="top-row">
+        <div class="avatar"></div>
+        <div class="menu-btn">≡</div>
+      </div>
+      <h1 class="hero">Get <span>Loans</span><br>in Minutes</h1>
+      <p class="sub">Meet financial needs and achieve specific goals.</p>
+
+      <div class="progress-card">
+        <div class="legend">
+          <span><i class="dot total"></i>Total Loan</span>
+          <span><i class="dot paid"></i>Paid Loan</span>
+          <span><i class="dot due"></i>Due Loan</span>
+        </div>
+        <div class="bar">
+          <div class="seg-paid">8%</div>
+          <div class="seg-due">30%</div>
+          <div class="seg-total">62%</div>
+        </div>
+      </div>
+
+      <div class="row-header"><h3>Popular Loans</h3><a class="see-all" href="#">See all ↗</a></div>
+      <div class="loan-item">
+        <div class="loan-icon">🏠</div>
+        <div class="meta"><b>Home Loan</b></div>
+        <button class="pill-btn" onclick="showView('detail')">Apply Loan</button>
+      </div>
+      <div class="loan-item">
+        <div class="loan-icon">🎓</div>
+        <div class="meta"><b>Study Loan</b></div>
+        <button class="pill-btn">Apply Loan</button>
+      </div>
+      <div class="loan-item">
+        <div class="loan-icon">🚗</div>
+        <div class="meta"><b>Car Loan</b><p>Seeking financial support for a reliable vehicle.</p></div>
+        <button class="pill-btn">Apply Loan</button>
+      </div>
+    </section>
+
+    <!-- BORROW AMOUNT -->
+    <section class="view" id="view-borrow">
+      <div class="center-flow">
+        <div class="prompt">How much would you like to borrow?</div>
+        <div class="amount-label">Loan Amount</div>
+        <div class="amount-value">$5,000</div>
+        <div class="amount-caption">I wanna borrow $5,000.<br>You can only apply up to $10,000.</div>
+        <button class="cta" onclick="showView('term')">Continue →</button>
+      </div>
+    </section>
+
+    <!-- TERM PICKER -->
+    <section class="view" id="view-term">
+      <div class="row-header" style="margin-top:14px;"><h3 style="font-size:18px;">How long do you want to<br>take to repay the loan?</h3></div>
+      <div class="term-card selected">
+        <div class="t-main"><div class="t-icon">⏱</div><div><b>6 months</b><small>With 6.25% Interest Rate</small></div></div>
+        <div class="check">✓</div>
+      </div>
+      <div class="term-card">
+        <div class="t-main"><div class="t-icon">📄</div><div><b>12 months</b><small>With 6.00% Interest Rate</small></div></div>
+        <div class="check"></div>
+      </div>
+      <div class="term-card">
+        <div class="t-main"><div class="t-icon">📅</div><div><b>24 months</b><small>With 5.85% Interest Rate</small></div></div>
+        <div class="check"></div>
+      </div>
+      <div class="term-card">
+        <div class="t-main"><div class="t-icon">⚙️</div><div><b>Custom</b><small>Get your own date and rate</small></div></div>
+        <div class="check"></div>
+      </div>
+      <button class="cta" onclick="showView('credit')">Continue →</button>
+    </section>
+
+    <!-- CREDIT SCORE -->
+    <section class="view" id="view-credit">
+      <div class="row-header"><h3>My Credits</h3></div>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg viewBox="0 0 200 110">
+            <path d="M10,100 A90,90 0 0 1 190,100" fill="none" stroke="var(--stroke)" stroke-width="14" stroke-linecap="round"/>
+            <path d="M10,100 A90,90 0 0 1 150,25" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round"/>
+          </svg>
+          <div class="score">780</div>
+          <div class="rating">Excellent</div>
+        </div>
+      </div>
+      <div class="quick-actions">
+        <div class="qa"><div class="circle">💳</div>Make Payment</div>
+        <div class="qa"><div class="circle">⚙️</div>Manage</div>
+        <div class="qa"><div class="circle">⋯</div>More</div>
+      </div>
+      <div class="summary-grid">
+        <div class="summary-cell"><span>Late Payments</span><b>0</b></div>
+        <div class="summary-cell"><span>Oldest Account</span><b>12.4y</b></div>
+        <div class="summary-cell"><span>Available Credit</span><b>$31,158</b></div>
+        <div class="summary-cell"><span>Credit Usage</span><b>25%</b></div>
+      </div>
+    </section>
+
+    <!-- LOAN DETAIL -->
+    <section class="view" id="view-detail">
+      <div class="detail-header">
+        <div class="back-btn" onclick="showView('home')">←</div>
+        <div class="detail-title">Home Loan</div>
+      </div>
+      <div class="detail-sub">Maximum amount $20,000</div>
+      <div class="stepper">
+        <div class="step-btn">−</div>
+        <div class="amount-value" style="font-size:34px;">$10,000</div>
+        <div class="step-btn">+</div>
+      </div>
+      <div class="row-header" style="margin-bottom:8px;"><h3 style="font-size:13px;color:var(--text-dim);font-weight:600;">Frequency</h3></div>
+      <div class="freq-tabs">
+        <div class="freq-tab active">6 months</div>
+        <div class="freq-tab">12 months</div>
+        <div class="freq-tab">24 months</div>
+      </div>
+      <button class="cta dark" style="margin-bottom:24px;">Apply Now</button>
+      <div class="row-header"><h3>Unpaid Bills</h3><a class="see-all" href="#">See all ↗</a></div>
+      <div class="bill-card">
+        <div class="bill-main">
+          <b>$110</b><span>Fees of February</span>
+          <div class="bill-stats"><span>$1,974 left</span><span>0.1% Interest</span></div>
+        </div>
+        <button class="pill-btn primary">Apply Loan</button>
+      </div>
+      <div class="bill-card">
+        <div class="bill-main">
+          <b>$53</b><span>Fees of January</span>
+          <div class="bill-stats"><span>$1,302 left</span><span>0.2% Interest</span></div>
+        </div>
+        <button class="pill-btn primary">Apply Loan</button>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showView('home')"><span class="nav-icon">🏠</span>Home</div>
+    <div class="nav-item" onclick="showView('borrow')"><span class="nav-icon">＄</span>Borrow</div>
+    <div class="nav-item" onclick="showView('credit')"><span class="nav-icon">◎</span>Credit</div>
+  </div>
+</div>
+
+<script>
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const map = {home:0, borrow:1, credit:2};
+  if(name in map){
+    document.querySelectorAll('.nav-item')[map[name]].classList.add('active');
+  }
+  document.querySelector('.screen').scrollTop = 0;
+}
+function toggleTheme(){
+  const phone = document.getElementById('phone');
+  phone.dataset.theme = phone.dataset.theme === 'dark' ? 'light' : 'dark';
+}
+</script>
+</body>
+</html>

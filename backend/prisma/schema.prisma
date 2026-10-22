@@ -1,0 +1,229 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite has no native enum support in Prisma, so these are plain strings.
+// Role: SUPER_ADMIN | LOAN_OFFICER | APPROVAL_MANAGER | ACCOUNTANT | MEMBER
+// MemberStatus: PENDING | ACTIVE | SUSPENDED | EXITED
+// SavingsType: REGULAR | TARGET | SHARES
+// InterestMethod: FLAT | REDUCING
+// LoanStatus: DRAFT | SUBMITTED | AWAITING_GUARANTORS | UNDER_REVIEW | RECOMMENDED |
+//   APPROVED | DISBURSED | ACTIVE | OVERDUE | COMPLETED | DEFAULTED | RESTRUCTURED | REJECTED
+// GuarantorStatus: PENDING | ACCEPTED | DECLINED
+// TxType: CONTRIBUTION | WITHDRAWAL | LOAN_DISBURSEMENT | LOAN_REPAYMENT | FEE | PENALTY | DIVIDEND | GUARANTOR_RECOVERY
+// TxDirection: CREDIT | DEBIT
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String
+  status       String   @default("ACTIVE")
+  lastLogin    DateTime?
+  createdAt    DateTime @default(now())
+
+  member       Member?
+  auditLogs    AuditLog[]
+  notifications Notification[]
+  failedLogins Int      @default(0)
+  lockedUntil  DateTime?
+
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean @default(false)
+}
+
+model Member {
+  id            String       @id @default(cuid())
+  userId        String       @unique
+  user          User         @relation(fields: [userId], references: [id])
+  memberNo      String       @unique
+  firstName     String
+  lastName      String
+  phone         String?
+  address       String?
+  employer      String?
+  department    String?
+  nextOfKin     String?
+  bankName      String?
+  bankAccount   String?
+  passportUrl   String?
+  joinDate      DateTime     @default(now())
+  status        String   @default("PENDING")
+  membershipFeePaid Boolean  @default(false)
+  entranceFeePaid   Boolean  @default(false)
+  createdAt     DateTime     @default(now())
+
+  documents     MemberDocument[]
+  savingsAccounts SavingsAccount[]
+  loans         Loan[]           @relation("MemberLoans")
+  guarantorFor  LoanGuarantor[]
+  transactions  Transaction[]
+}
+
+model MemberDocument {
+  id        String   @id @default(cuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  type      String
+  fileUrl   String
+  createdAt DateTime @default(now())
+}
+
+model SavingsAccount {
+  id        String      @id @default(cuid())
+  memberId  String
+  member    Member      @relation(fields: [memberId], references: [id])
+  type      String   @default("REGULAR")
+  balance   Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  transactions Transaction[]
+
+  @@unique([memberId, type])
+}
+
+model Transaction {
+  id          String      @id @default(cuid())
+  memberId    String
+  member      Member      @relation(fields: [memberId], references: [id])
+  accountId   String?
+  account     SavingsAccount? @relation(fields: [accountId], references: [id])
+  loanId      String?
+  loan        Loan?       @relation(fields: [loanId], references: [id])
+  type        String
+  amount      Int
+  direction   String
+  reference   String?
+  method      String?
+  recordedBy  String?
+  createdAt   DateTime    @default(now())
+}
+
+model LoanProduct {
+  id                String         @id @default(cuid())
+  name              String
+  rate              Float
+  method            String   @default("FLAT")
+  minAmount         Int
+  maxAmount         Int
+  maxTenureMonths   Int
+  minMembershipMonths Int          @default(6)
+  savingsMultiplier Float          @default(2)
+  guarantorsRequired Int           @default(2)
+  processingFeePct  Float          @default(0)
+  penaltyRatePct    Float          @default(0)
+  active            Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+
+  loans             Loan[]
+}
+
+model Loan {
+  id           String     @id @default(cuid())
+  memberId     String
+  member       Member     @relation("MemberLoans", fields: [memberId], references: [id])
+  productId    String
+  product      LoanProduct @relation(fields: [productId], references: [id])
+  amount       Int
+  tenureMonths Int
+  rate         Float
+  method       String
+  purpose      String?
+  status       String   @default("DRAFT")
+  processingFee Int       @default(0)
+  totalInterest Int       @default(0)
+  totalPayable  Int       @default(0)
+  monthlyPayment Int      @default(0)
+  appliedAt    DateTime?
+  approvedBy   String?
+  disbursedAt  DateTime?
+  disbursedBy  String?
+  disbursementMethod String?
+  disbursementRef String?
+  createdAt    DateTime   @default(now())
+
+  guarantors   LoanGuarantor[]
+  approvals    LoanApproval[]
+  schedule     RepaymentSchedule[]
+  repayments   Repayment[]
+  transactions Transaction[]
+}
+
+model LoanGuarantor {
+  id                 String          @id @default(cuid())
+  loanId             String
+  loan               Loan            @relation(fields: [loanId], references: [id])
+  guarantorMemberId  String
+  guarantor          Member          @relation(fields: [guarantorMemberId], references: [id])
+  amountGuaranteed   Int
+  status             String          @default("PENDING")
+  respondedAt        DateTime?
+  createdAt          DateTime        @default(now())
+}
+
+model LoanApproval {
+  id        String   @id @default(cuid())
+  loanId    String
+  loan      Loan     @relation(fields: [loanId], references: [id])
+  stage     String
+  action    String
+  actorId   String
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model RepaymentSchedule {
+  id           String   @id @default(cuid())
+  loanId       String
+  loan         Loan     @relation(fields: [loanId], references: [id])
+  instalmentNo Int
+  dueDate      DateTime
+  principal    Int
+  interest     Int
+  amountDue    Int
+  amountPaid   Int      @default(0)
+  status       String   @default("PENDING")
+}
+
+model Repayment {
+  id         String   @id @default(cuid())
+  loanId     String
+  loan       Loan     @relation(fields: [loanId], references: [id])
+  amount     Int
+  paidAt     DateTime @default(now())
+  method     String?
+  reference  String?
+  recordedBy String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  key   String @id
+  value String
+}
